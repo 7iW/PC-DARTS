@@ -234,11 +234,11 @@ def get_data(dataset, data_path,val1_data_path,val2_data_path, cutout_length, va
         one_hot_y_train = []
         one_hot_y_test = []
         for i in range(len(y_train)):
-            one_hot_y = np.zeros(num_classes)
+            one_hot_y = np.zeros(num_classes,dtype=object)
             one_hot_y[y_train[i]] = 1
             one_hot_y_train.append(one_hot_y)
         for i in range(len(y_test)):
-            one_hot_y =np.zeros(num_classes)
+            one_hot_y =np.zeros(num_classes,dtype=object)
             one_hot_y[y_test[i]] = 1
             one_hot_y_test.append(one_hot_y)
             
