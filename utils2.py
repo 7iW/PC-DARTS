@@ -244,7 +244,6 @@ def get_data(dataset, data_path,val1_data_path,val2_data_path, cutout_length, va
             one_hot_y[y_test[i]] = 1
             one_hot_y_test.append(one_hot_y)
             
-        print(y_train)
         tensor_train_x = torch.stack([torch.Tensor(i) for i in x_train_data]) # transform to torch tensors
         tensor_test_x = torch.stack([torch.Tensor(i) for i in x_test_data]) # transform to torch tensors
         
