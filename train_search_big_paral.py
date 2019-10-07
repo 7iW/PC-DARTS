@@ -180,7 +180,9 @@ def train(train_queue, valid_queue, model, architect, criterion, optimizer, lr,e
     #input = torch.Tensor(input)
     #input = Variable(input, requires_grad=False).cuda()
     logits = model(input)
-    loss = criterion(logits, target)
+    #loss = criterion(logits, target)
+    loss = criterion(logits,torch.max(target, 1)[1])
+    
 
     loss.backward()
     nn.utils.clip_grad_norm(model.module.parameters(), args.grad_clip)
