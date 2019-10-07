@@ -158,7 +158,7 @@ def train(train_queue, valid_queue, model, architect, criterion, optimizer, lr,e
     n = input.size(0)
     input = Variable(input, requires_grad=False).cuda()
     target = Variable(target, requires_grad=False).cuda(async=True)
-
+    target = torch.max(target, 1)[1]
     # get a random minibatch from the search queue with replacement
     input_search, target_search = next(iter(valid_queue))
     #try:
@@ -180,8 +180,7 @@ def train(train_queue, valid_queue, model, architect, criterion, optimizer, lr,e
     #input = torch.Tensor(input)
     #input = Variable(input, requires_grad=False).cuda()
     logits = model(input)
-    #loss = criterion(logits, target)
-    loss = criterion(logits,torch.max(target, 1)[1])
+    loss = criterion(logits, target)
     
 
     loss.backward()
