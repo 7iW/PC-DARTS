@@ -218,8 +218,15 @@ def get_data(dataset, data_path,val1_data_path,val2_data_path, cutout_length, va
             rgb = cv2.merge([x_re,x_re,x_re])
             x_test_data.append(rgb)
             
+        
         x_train_data = np.asarray(x_train_data)
+        x_train_data = torch.from_numpy(x_train_data)
+        x_train_data = x_train_data.permute(0, 3, 1, 2)
+
         x_test_data = np.asarray(x_test_data)
+        x_test_data = torch.from_numpy(x_test_data)
+        x_test_data = x_test_data.permute(0, 3, 1, 2)
+        
         y_train = np.asarray(y_train)
         y_test = np.asarray(y_test)
         
