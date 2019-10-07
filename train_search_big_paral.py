@@ -158,6 +158,7 @@ def train(train_queue, valid_queue, model, architect, criterion, optimizer, lr,e
     n = input.size(0)
     input = Variable(input, requires_grad=False).cuda()
     target = Variable(target, requires_grad=False).cuda(async=True)
+    #BUGFIX: Ajeitar!!!, o target n deve ser one hot label, e sim um long. Ajeitar no utils os labels y
     target = torch.max(target, 1)[1]
     # get a random minibatch from the search queue with replacement
     input_search, target_search = next(iter(valid_queue))
@@ -214,6 +215,9 @@ def infer(valid_queue, model, criterion):
     #target = target.cuda(non_blocking=True)
     input = Variable(input, volatile=True).cuda()
     target = Variable(target, volatile=True).cuda(async=True)
+    #BUGFIX: Ajeitar!!!, o target n deve ser one hot label, e sim um long. Ajeitar no utils os labels y
+    target = torch.max(target, 1)[1]
+    
     logits = model(input)
     loss = criterion(logits, target)
 
