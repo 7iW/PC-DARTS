@@ -112,12 +112,12 @@ def main():
   train_queue = torch.utils.data.DataLoader(train_data,
                                            batch_size=args.batch_size,
                                            sampler=train_sampler,
-                                           num_workers=2,
+                                           num_workers=1,
                                            pin_memory=True)
   test_queue = torch.utils.data.DataLoader(test_dat,
                                            batch_size=args.batch_size,
                                            sampler=test_sampler,
-                                           num_workers=2,
+                                           num_workers=1,
                                            pin_memory=True)
      
 
