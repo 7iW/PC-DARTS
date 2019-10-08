@@ -49,7 +49,7 @@ def load(path):
         Ys.append(int(label))
   return Xs,Ys
 
-def get_data(dataset, data_path,val1_data_path,val2_data_path, cutout_length, validation,validation2 = False,n_class = 3,image_size = 64):
+def get_data(dataset, data_path,labels_path, cutout_length, validation,validation2 = False,n_class = 3,image_size = 64):
     """ Get torchvision dataset """
     dataset = dataset.lower()
 
@@ -73,7 +73,7 @@ def get_data(dataset, data_path,val1_data_path,val2_data_path, cutout_length, va
         print("DATA PATH:", data_path)
         #trn_data = dset_cls(root=data_path, transform=trn_transform)
         
-        Xs, Ys = load(data_path+'../labels.txt')
+        Xs, Ys = load(labels_path)
            
         X_train,X_test,y_train,y_test = kfold(Xs,Ys,2,1)#dividido em 5 folds, 1 forma de fold
         
