@@ -121,8 +121,8 @@ def get_data(dataset, data_path,val1_data_path,val2_data_path, cutout_length, va
             
         #tensor_train_x = torch.stack([torch.Tensor(i) for i in x_train_data]) # transform to torch tensors
         #tensor_test_x = torch.stack([torch.Tensor(i) for i in x_test_data]) # transform to torch tensors
-        tensor_train_x = torch.stack([i for i in x_train_data])
-        tensor_test_x = torch.stack([i for i in x_test_data]) 
+        tensor_train_x = torch.stack([i.type('torch.DoubleTensor') for i in x_train_data])
+        tensor_test_x = torch.stack([i.type('torch.DoubleTensor') for i in x_test_data]) 
         #tensor_train_y = torch.from_numpy(np.asarray(one_hot_y_train))
         #tensor_test_y = torch.from_numpy(np.asarray(one_hot_y_test))
         
