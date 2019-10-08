@@ -41,14 +41,11 @@ def kfold(files,labels,nfolds = 5, nsplit = 5):
 def load(path):
   import glob
   Xs,Ys = [],[]
-  files = glob.glob(path+'*.jpg')
-  if(len(files)==0):
-      files = glob.glob(path+'*.png') 
-  print(len(files))
-  for f in files:
-    name,label = f.split(',')
-    Xs.append(name)
-    Ys.append(int(label))
+  with open(path) as fp:
+    for line in fp:
+        name,label = f.split(',')
+        Xs.append(name)
+        Ys.append(int(label))
   return Xs,Ys
 
 def get_data(dataset, data_path,val1_data_path,val2_data_path, cutout_length, validation,validation2 = False,n_class = 3,image_size = 64):
