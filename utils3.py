@@ -81,15 +81,16 @@ def get_data(dataset, data_path,val1_data_path,val2_data_path, cutout_length, va
         x_train_data = []
         x_test_data = []
         for x_path in X_train:
-            x = reader.load_img(data_path+x_path)
-            x_re = cv2.resize(x,(image_size,image_size))
-            rgb = cv2.merge([x_re,x_re,x_re])
-            x_train_data.append(rgb)
+            x = cv2.imread(data_path+x_path, cv2.IMREAD_GRAYSCALE) 
+            #x_re = cv2.resize(x,(image_size,image_size))
+            #rgb = cv2.merge([x_re,x_re,x_re])
+            x_train_data.append(x)
         for x_path in X_test:
-            x = reader.load_img(data_path+x_path)
-            x_re = cv2.resize(x,(image_size,image_size))
-            rgb = cv2.merge([x_re,x_re,x_re])
-            x_test_data.append(rgb)
+            x = cv2.imread(data_path+x_path, cv2.IMREAD_GRAYSCALE) 
+           
+            #x_re = cv2.resize(x,(image_size,image_size))
+            #rgb = cv2.merge([x_re,x_re,x_re])
+            x_test_data.append(x)
             
         
         x_train_data = np.asarray(x_train_data)
