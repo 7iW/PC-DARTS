@@ -40,9 +40,11 @@ def kfold(files,labels,nfolds = 5, nsplit = 5):
 
 def load(path):
   import glob
-  good,bad,ugly =[],[],[]
-  Xs,Ys = []
-  files = glob.glob(path+'/*.png')
+  Xs,Ys = [],[]
+  files = glob.glob(path+'/*.jpg')
+  if(len(files)==0):
+      files = glob.glob(path+'/*.png') 
+
   for f in files:
     name,label = f.split(',')
     Xs.append(name)
