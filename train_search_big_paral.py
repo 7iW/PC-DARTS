@@ -32,7 +32,7 @@ parser.add_argument('--learning_rate_min', type=float, default=0.001, help='min 
 parser.add_argument('--momentum', type=float, default=0.9, help='momentum')
 parser.add_argument('--weight_decay', type=float, default=3e-4, help='weight decay')
 parser.add_argument('--report_freq', type=float, default=50, help='report frequency')
-parser.add_argument('--gpu', type=int, default=0, help='gpu device id')
+parser.add_argument('--gpu', type=str, default=0, help='gpu device id', nargs = '?')
 parser.add_argument('--epochs', type=int, default=50, help='num of training epochs')
 parser.add_argument('--init_channels', type=int, default=16, help='num of init channels')
 parser.add_argument('--layers', type=int, default=8, help='total number of layers')
@@ -71,13 +71,14 @@ def main():
     sys.exit(1)
 
   np.random.seed(args.seed)
+  os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
   #torch.cuda.set_device(args.gpu)
   cudnn.benchmark = True
   torch.manual_seed(args.seed)
   
   cudnn.enabled=args.cudnn
   torch.cuda.manual_seed(args.seed)
-  logging.info('gpu device = %d' % args.gpu)
+  logging.info('gpu device = %s' % args.gpu)
   logging.info("args = %s", args)
 
   criterion = nn.CrossEntropyLoss()
@@ -272,4 +273,4 @@ def infer(valid_queue, model, criterion):
 
 
 if __name__ == '__main__':
-  main() 
+  main()
