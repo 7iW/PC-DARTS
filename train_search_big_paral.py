@@ -163,6 +163,8 @@ def train(train_queue, valid_queue, model, architect, criterion, optimizer, lr,e
     target = Variable(target, requires_grad=False).cuda(async=True)
     #BUGFIX: Ajeitar!!!, o target n deve ser one hot label, e sim um long. Ajeitar no utils os labels y
     target = torch.max(target, 1)[1]
+    input = input.float()
+    
     # get a random minibatch from the search queue with replacement
     input_search, target_search = next(iter(valid_queue))
     #try:
