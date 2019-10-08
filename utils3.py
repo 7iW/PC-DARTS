@@ -94,8 +94,9 @@ def get_data(dataset, data_path,val1_data_path,val2_data_path, cutout_length, va
         
         x_train_data = np.asarray(x_train_data)
         x_train_data = torch.from_numpy(x_train_data)
-        print(x_train_data.shape)
+        
         x_train_data = x_train_data.permute(0, 3, 1, 2)
+        print(x_train_data.shape)
 
         x_test_data = np.asarray(x_test_data)
         x_test_data = torch.from_numpy(x_test_data)
@@ -118,9 +119,10 @@ def get_data(dataset, data_path,val1_data_path,val2_data_path, cutout_length, va
             one_hot_y[y_test[i]] = 1
             one_hot_y_test.append(one_hot_y)
             
-        tensor_train_x = torch.stack([torch.Tensor(i) for i in x_train_data]) # transform to torch tensors
-        tensor_test_x = torch.stack([torch.Tensor(i) for i in x_test_data]) # transform to torch tensors
-        
+        #tensor_train_x = torch.stack([torch.Tensor(i) for i in x_train_data]) # transform to torch tensors
+        #tensor_test_x = torch.stack([torch.Tensor(i) for i in x_test_data]) # transform to torch tensors
+        tensor_train_x = torch.stack(x_train_data)
+        tensor_test_x = torch.stack(x_test_data) 
         #tensor_train_y = torch.from_numpy(np.asarray(one_hot_y_train))
         #tensor_test_y = torch.from_numpy(np.asarray(one_hot_y_test))
         
