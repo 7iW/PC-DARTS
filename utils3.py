@@ -73,7 +73,7 @@ def get_data(dataset, data_path,val1_data_path,val2_data_path, cutout_length, va
         print("DATA PATH:", data_path)
         #trn_data = dset_cls(root=data_path, transform=trn_transform)
         
-        Xs, Ys = load('labels.txt')
+        Xs, Ys = load(data_path+'../labels.txt')
            
         X_train,X_test,y_train,y_test = kfold(Xs,Ys,2,1)#dividido em 5 folds, 1 forma de fold
         
