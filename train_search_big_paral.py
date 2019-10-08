@@ -6,6 +6,7 @@ import numpy as np
 import torch
 import utils
 import utils2
+import utils3
 import logging
 import argparse
 import torch.nn as nn
@@ -93,7 +94,7 @@ def main():
       momentum=args.momentum,
       weight_decay=args.weight_decay)
   
-  _, _, n_classes, train_data,test_dat = utils2.get_data(
+  _, _, n_classes, train_data,test_dat = utils3.get_data(
         "custom", args.train_data_path,args.val_data_path,args.test_data_path, cutout_length=0, validation=True,validation2 = True,n_class = args.n_class, image_size = args.image_size)
   
   #balanced split to train/validation
