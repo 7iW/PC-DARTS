@@ -80,16 +80,15 @@ def get_data(dataset, data_path,val1_data_path,val2_data_path, cutout_length, va
         x_train_data = []
         x_test_data = []
         for x_path in X_train:
-            x = cv2.imread(data_path+x_path) 
-            #x_re = cv2.resize(x,(image_size,image_size))
-            #rgb = cv2.merge([x_re,x_re,x_re])
-            x_train_data.append(x)
+            x = cv2.imread(data_path+x_path,cv2.IMREAD_GRAYSCALE) 
+            x_re = cv2.resize(x,(image_size,image_size))
+            rgb = cv2.merge([x_re,x_re,x_re])
+            x_train_data.append(rgb)
         for x_path in X_test:
-            x = cv2.imread(data_path+x_path) 
-           
-            #x_re = cv2.resize(x,(image_size,image_size))
-            #rgb = cv2.merge([x_re,x_re,x_re])
-            x_test_data.append(x)
+            x = cv2.imread(data_path+x_path,cv2.IMREAD_GRAYSCALE) 
+            x_re = cv2.resize(x,(image_size,image_size))
+            rgb = cv2.merge([x_re,x_re,x_re])
+            x_test_data.append(rgb)
             
         
         x_train_data = np.asarray(x_train_data)
@@ -119,10 +118,10 @@ def get_data(dataset, data_path,val1_data_path,val2_data_path, cutout_length, va
             one_hot_y[y_test[i]] = 1
             one_hot_y_test.append(one_hot_y)
             
-        #tensor_train_x = torch.stack([torch.Tensor(i) for i in x_train_data]) # transform to torch tensors
-        #tensor_test_x = torch.stack([torch.Tensor(i) for i in x_test_data]) # transform to torch tensors
-        tensor_train_x = torch.stack([i.type('torch.DoubleTensor') for i in x_train_data])
-        tensor_test_x = torch.stack([i.type('torch.DoubleTensor') for i in x_test_data]) 
+        tensor_train_x = torch.stack([torch.Tensor(i) for i in x_train_data]) # transform to torch tensors
+        tensor_test_x = torch.stack([torch.Tensor(i) for i in x_test_data]) # transform to torch tensors
+        #tensor_train_x = torch.stack([i.type('torch.DoubleTensor') for i in x_train_data])
+        #tensor_test_x = torch.stack([i.type('torch.DoubleTensor') for i in x_test_data]) 
         #tensor_train_y = torch.from_numpy(np.asarray(one_hot_y_train))
         #tensor_test_y = torch.from_numpy(np.asarray(one_hot_y_test))
         
