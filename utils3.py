@@ -43,7 +43,7 @@ def load(path):
   Xs,Ys = [],[]
   with open(path) as fp:
     for line in fp:
-        name,label = f.split(',')
+        name,label = line.split(',')
         Xs.append(name)
         Ys.append(int(label))
   return Xs,Ys
