@@ -83,7 +83,7 @@ def get_data(dataset, data_path,labels_path, cutout_length, validation,validatio
         
         Xs, Ys = load(labels_path)
            
-        X_train,X_test,y_train,y_test = kfold(Xs,Ys,5,1)#dividido em 5 folds, 1 forma de fold
+        X_train,X_test,y_train,y_test = kfold(Xs,Ys,10,1)#dividido em 5 folds, 1 forma de fold
         
         x_train_data = []
         x_test_data = []
