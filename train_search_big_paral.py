@@ -21,9 +21,8 @@ from architect_paral import Architect
 
 
 parser = argparse.ArgumentParser("cifar")
-parser.add_argument('--train_data_path', type=str, default='/content/data/train', help='location of the data corpus')
-parser.add_argument('--val_data_path', type=str, default='/content/data/valid', help='location of the data corpus')
-parser.add_argument('--test_data_path', type=str, default='/content/data/test', help='location of the data corpus')
+parser.add_argument('--data_path', type=str, default='data', help='location of the data corpus')
+parser.add_argument('--labels_path', type=str, default='labels.txt', help='location of the label file')
 parser.add_argument('--set', type=str, default='cifar10', help='location of the data corpus')
 parser.add_argument('--batch_size', type=int, default=8, help='batch size')
 parser.add_argument('--image_size', type=int, default=300, help='batch size')
@@ -95,7 +94,7 @@ def main():
       weight_decay=args.weight_decay)
   
   _, _, n_classes, train_data,test_dat = utils3.get_data(
-        "custom", args.train_data_path,args.val_data_path,args.test_data_path, cutout_length=0, validation=True,validation2 = True,n_class = args.n_class, image_size = args.image_size)
+        "custom", args.data_path,args.labels_path, cutout_length=0, validation=True,validation2 = True,n_class = args.n_class, image_size = args.image_size)
   
   #balanced split to train/validation
   print(train_data)
