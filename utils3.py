@@ -46,7 +46,12 @@ def load(path):
            break
         name,label = line.split(',')
         Xs.append(name)
-        Ys.append(int(label))
+        if(label == 'good'):
+            Ys.append(0)
+        if(label == 'bad'):
+            Ys.append(1)
+        if(label == 'ugly'):
+            Ys.append(2)
   return Xs,Ys
 
 def get_data(dataset, data_path,labels_path, cutout_length, validation,validation2 = False,n_class = 3,image_size = 64):
