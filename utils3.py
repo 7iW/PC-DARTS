@@ -46,11 +46,11 @@ def load(path):
            break
         name,label = line.split(',')
         Xs.append(name)
-        if(label == 'good'):
+        if(label == 'good\n'):
             Ys.append(0)
-        if(label == 'bad'):
+        if(label == 'bad\n'):
             Ys.append(1)
-        if(label == 'ugly'):
+        if(label == 'ugly\n'):
             Ys.append(2)
   return Xs,Ys
 
