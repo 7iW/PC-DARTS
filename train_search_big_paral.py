@@ -32,7 +32,7 @@ parser.add_argument('--learning_rate_min', type=float, default=0.001, help='min 
 parser.add_argument('--momentum', type=float, default=0.9, help='momentum')
 parser.add_argument('--weight_decay', type=float, default=3e-4, help='weight decay')
 parser.add_argument('--report_freq', type=float, default=50, help='report frequency')
-parser.add_argument('--gpu', type=str, default=0, help='gpu device id', nargs = '?')
+parser.add_argument('--gpu', type=str, help = "GPU Selection", nargs = '?')
 parser.add_argument('--epochs', type=int, default=50, help='num of training epochs')
 parser.add_argument('--init_channels', type=int, default=16, help='num of init channels')
 parser.add_argument('--layers', type=int, default=8, help='total number of layers')
@@ -50,6 +50,7 @@ parser.add_argument('--arch_weight_decay', type=float, default=1e-3, help='weigh
 parser.add_argument('--cudnn', action='store_true', default=False, help='if using cudnn')
 
 args = parser.parse_args()
+os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
 
 args.save = 'search-{}-{}'.format(args.save, time.strftime("%Y%m%d-%H%M%S"))
 utils.create_exp_dir(args.save, scripts_to_save=glob.glob('*.py'))
@@ -71,7 +72,7 @@ def main():
     sys.exit(1)
 
   np.random.seed(args.seed)
-  os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
+  print(args.gpu)
   #torch.cuda.set_device(args.gpu)
   cudnn.benchmark = True
   torch.manual_seed(args.seed)
@@ -86,6 +87,7 @@ def main():
   model = Network(args.init_channels, args.n_class, args.layers, criterion)
   #model = model.cuda()
   model = torch.nn.DataParallel(model).cuda()
+  #model = torch.nn.DataParallel(model,device_ids=[1]).cuda()
   logging.info("param size = %fMB", utils.count_parameters_in_MB(model))
 
   optimizer = torch.optim.SGD(
@@ -145,10 +147,10 @@ def main():
     test_acc,test_obj = infer(test_queue, model, criterion)
     logging.info('test_acc %f', test_acc)
     
-    utils.save(model, os.path.join(args.save, 'weights.pt'))
-    if(test_acc > bestMetric):
-        bestMetric = test_acc
-        utils.save(model, os.path.join(args.save, 'best_weights.pt'))
+    #utils.save(model, os.path.join(args.save, 'weights.pt'))
+    #if(test_acc > bestMetric):
+    #    bestMetric = test_acc
+    #    utils.save(model, os.path.join(args.save, 'best_weights.pt'))
         
 
 def train(train_queue, valid_queue, model, architect, criterion, optimizer, lr,epoch):
