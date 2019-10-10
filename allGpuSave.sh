@@ -1,1 +1,2 @@
-python train_search_big_paral.py  --image_size 512 --gpu 0,1 --data_path '../dataset/FIGURAS_ML_PUC_2019_Co/' --labels_path '../src/classification/train_png.txt' --epochs 300 --n_class 5 --batch_size 64 > nas_log.txt
+python train_search_big_paral.py  --image_size 256 --gpu 1 --data_path '../dataset/FIGURAS_ML_PUC_2019_Co/' --labels_path '../src/classification/train_png.txt' --epochs 500 --n_class 5 --batch_size 128 > nas_log1.txt
+python train_search_big_paral.py  --image_size 512 --gpu 1 --data_path '../dataset/FIGURAS_ML_PUC_2019_Co/' --labels_path '../src/classification/train_png.txt' --epochs 500 --n_class 5 --batch_size 64 > nas_log2.txt
