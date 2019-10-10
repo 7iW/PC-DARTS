@@ -6,6 +6,7 @@ import numpy as np
 import torch
 import utils
 import utils2
+import utils3
 import logging
 import argparse
 import torch.nn as nn
@@ -20,9 +21,8 @@ from architect_paral import Architect
 
 
 parser = argparse.ArgumentParser("cifar")
-parser.add_argument('--train_data_path', type=str, default='/content/data/train', help='location of the data corpus')
-parser.add_argument('--val_data_path', type=str, default='/content/data/valid', help='location of the data corpus')
-parser.add_argument('--test_data_path', type=str, default='/content/data/test', help='location of the data corpus')
+parser.add_argument('--data_path', type=str, default='data', help='location of the data corpus')
+parser.add_argument('--labels_path', type=str, default='labels.txt', help='location of the label file')
 parser.add_argument('--set', type=str, default='cifar10', help='location of the data corpus')
 parser.add_argument('--batch_size', type=int, default=8, help='batch size')
 parser.add_argument('--image_size', type=int, default=300, help='batch size')
@@ -32,7 +32,7 @@ parser.add_argument('--learning_rate_min', type=float, default=0.001, help='min 
 parser.add_argument('--momentum', type=float, default=0.9, help='momentum')
 parser.add_argument('--weight_decay', type=float, default=3e-4, help='weight decay')
 parser.add_argument('--report_freq', type=float, default=50, help='report frequency')
-parser.add_argument('--gpu', type=int, default=0, help='gpu device id')
+parser.add_argument('--gpu', type=str, help = "GPU Selection", nargs = '?')
 parser.add_argument('--epochs', type=int, default=50, help='num of training epochs')
 parser.add_argument('--init_channels', type=int, default=16, help='num of init channels')
 parser.add_argument('--layers', type=int, default=8, help='total number of layers')
@@ -47,7 +47,10 @@ parser.add_argument('--train_portion', type=float, default=0.5, help='portion of
 parser.add_argument('--unrolled', action='store_true', default=False, help='use one-step unrolled validation loss')
 parser.add_argument('--arch_learning_rate', type=float, default=6e-4, help='learning rate for arch encoding')
 parser.add_argument('--arch_weight_decay', type=float, default=1e-3, help='weight decay for arch encoding')
+parser.add_argument('--cudnn', action='store_true', default=False, help='if using cudnn')
+
 args = parser.parse_args()
+os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
 
 args.save = 'search-{}-{}'.format(args.save, time.strftime("%Y%m%d-%H%M%S"))
 utils.create_exp_dir(args.save, scripts_to_save=glob.glob('*.py'))
@@ -69,13 +72,14 @@ def main():
     sys.exit(1)
 
   np.random.seed(args.seed)
+  print(args.gpu)
   #torch.cuda.set_device(args.gpu)
   cudnn.benchmark = True
   torch.manual_seed(args.seed)
-  #cudnn.enabled=True
-  cudnn.enabled=False
+  
+  cudnn.enabled=args.cudnn
   torch.cuda.manual_seed(args.seed)
-  logging.info('gpu device = %d' % args.gpu)
+  logging.info('gpu device = %s' % args.gpu)
   logging.info("args = %s", args)
 
   criterion = nn.CrossEntropyLoss()
@@ -83,6 +87,7 @@ def main():
   model = Network(args.init_channels, args.n_class, args.layers, criterion)
   #model = model.cuda()
   model = torch.nn.DataParallel(model).cuda()
+  #model = torch.nn.DataParallel(model,device_ids=[1]).cuda()
   logging.info("param size = %fMB", utils.count_parameters_in_MB(model))
 
   optimizer = torch.optim.SGD(
@@ -91,62 +96,33 @@ def main():
       momentum=args.momentum,
       weight_decay=args.weight_decay)
   
-  _, _, n_classes, train_data,val_dat,test_dat = utils2.get_data(
-        "custom", args.train_data_path,args.val_data_path,args.test_data_path, cutout_length=0, validation=True,validation2 = True,n_class = args.n_class, image_size = args.image_size)
+  _, _, n_classes, train_data,test_dat = utils3.get_data(
+        "custom", args.data_path,args.labels_path, cutout_length=0, validation=True,validation2 = True,n_class = args.n_class, image_size = args.image_size)
   
   #balanced split to train/validation
   print(train_data)
 
   # split data to train/validation
   num_train = len(train_data)
-  n_val = len(val_dat)
   n_test = len(test_dat)
   indices1 = list(range(num_train))
-  indices2 = list(range(n_val))
   indices3 = list(range(n_test))
   train_sampler = torch.utils.data.sampler.SubsetRandomSampler(indices1)
-  valid_sampler = torch.utils.data.sampler.SubsetRandomSampler(indices2)
   test_sampler = torch.utils.data.sampler.SubsetRandomSampler(indices3)
 
 
   train_queue = torch.utils.data.DataLoader(train_data,
                                            batch_size=args.batch_size,
                                            sampler=train_sampler,
-                                           num_workers=2,
-                                           pin_memory=True)
-  valid_queue = torch.utils.data.DataLoader(val_dat,
-                                           batch_size=args.batch_size,
-                                           sampler=valid_sampler,
-                                           num_workers=2,
+                                           num_workers=1,
                                            pin_memory=True)
   test_queue = torch.utils.data.DataLoader(test_dat,
                                            batch_size=args.batch_size,
                                            sampler=test_sampler,
-                                           num_workers=2,
+                                           num_workers=1,
                                            pin_memory=True)
      
-  """
-  train_transform, valid_transform = utils._data_transforms_cifar10(args)
-  if args.set=='cifar100':
-      train_data = dset.CIFAR100(root=args.data, train=True, download=True, transform=train_transform)
-  else:
-      train_data = dset.CIFAR10(root=args.data, train=True, download=True, transform=train_transform)
 
-  num_train = len(train_data)
-  indices = list(range(num_train))
-  split = int(np.floor(args.train_portion * num_train))
-
-  
-  train_queue = torch.utils.data.DataLoader(
-      train_data, batch_size=args.batch_size,
-      sampler=torch.utils.data.sampler.SubsetRandomSampler(indices[:split]),
-      pin_memory=True, num_workers=2)
-
-  valid_queue = torch.utils.data.DataLoader(
-      train_data, batch_size=args.batch_size,
-      sampler=torch.utils.data.sampler.SubsetRandomSampler(indices[split:num_train]),
-      pin_memory=True, num_workers=2)
-  """
   scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
         optimizer, float(args.epochs), eta_min=args.learning_rate_min)
 
@@ -164,21 +140,17 @@ def main():
     #print(F.softmax(model.alphas_reduce, dim=-1))
 
     # training
-    train_acc, train_obj = train(train_queue, valid_queue, model, architect, criterion, optimizer, lr,epoch)
+    train_acc, train_obj = train(train_queue, test_queue, model, architect, criterion, optimizer, lr,epoch)
     logging.info('train_acc %f', train_acc)
 
-    # validation
-    #if args.epochs-epoch<=1:
-    valid_acc, valid_obj = infer(valid_queue, model, criterion)
-    logging.info('valid_acc %f', valid_acc)
     
     test_acc,test_obj = infer(test_queue, model, criterion)
     logging.info('test_acc %f', test_acc)
     
-    utils.save(model, os.path.join(args.save, 'weights.pt'))
-    if(valid_acc > bestMetric):
-        bestMetric = valid_acc
-        utils.save(model, os.path.join(args.save, 'best_weights.pt'))
+    #utils.save(model, os.path.join(args.save, 'weights.pt'))
+    #if(test_acc > bestMetric):
+    #    bestMetric = test_acc
+    #    utils.save(model, os.path.join(args.save, 'best_weights.pt'))
         
 
 def train(train_queue, valid_queue, model, architect, criterion, optimizer, lr,epoch):
@@ -191,7 +163,9 @@ def train(train_queue, valid_queue, model, architect, criterion, optimizer, lr,e
     n = input.size(0)
     input = Variable(input, requires_grad=False).cuda()
     target = Variable(target, requires_grad=False).cuda(async=True)
-
+    #BUGFIX: Ajeitar!!!, o target n deve ser one hot label, e sim um long. Ajeitar no utils os labels y
+    target = torch.max(target, 1)[1]
+    
     # get a random minibatch from the search queue with replacement
     input_search, target_search = next(iter(valid_queue))
     #try:
@@ -214,6 +188,7 @@ def train(train_queue, valid_queue, model, architect, criterion, optimizer, lr,e
     #input = Variable(input, requires_grad=False).cuda()
     logits = model(input)
     loss = criterion(logits, target)
+    
 
     loss.backward()
     nn.utils.clip_grad_norm(model.module.parameters(), args.grad_clip)
@@ -246,6 +221,9 @@ def infer(valid_queue, model, criterion):
     #target = target.cuda(non_blocking=True)
     input = Variable(input, volatile=True).cuda()
     target = Variable(target, volatile=True).cuda(async=True)
+    #BUGFIX: Ajeitar!!!, o target n deve ser one hot label, e sim um long. Ajeitar no utils os labels y
+    target = torch.max(target, 1)[1]
+    
     logits = model(input)
     loss = criterion(logits, target)
 
@@ -297,4 +275,4 @@ def infer(valid_queue, model, criterion):
 
 
 if __name__ == '__main__':
-  main() 
+  main()
