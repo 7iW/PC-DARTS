@@ -232,8 +232,10 @@ def infer(valid_queue, model, criterion):
   model.eval()
   preds = np.asarray([])
   targets = np.asarray([])
+  logits_pred = []
+  names= []
 
-  for step, (input, target) in enumerate(valid_queue):
+  for step, (input, target,name) in enumerate(valid_queue):
     #input = input.cuda()
     #target = target.cuda(non_blocking=True)
     input = Variable(input, volatile=True).cuda()
@@ -260,6 +262,8 @@ def infer(valid_queue, model, criterion):
     preds = np.concatenate((preds,predicted.cpu().numpy().ravel()))
     #targets = np.concatenate((targets,target.cpu().numpy().ravel()))
     targets = np.concatenate((targets,target.data.cpu().numpy().ravel()))
+    names.append(name)
+    logits_pred.append(output.data.cpu().numpy())
 
 
     if step % args.report_freq == 0:
@@ -271,7 +275,6 @@ def infer(valid_queue, model, criterion):
   print('np.unique(preds): ',np.unique(preds))
   from sklearn.metrics import classification_report
   from sklearn.metrics import accuracy_score
-  print(accuracy_score(targets, preds))
   cr = classification_report(targets, preds,output_dict= True)
   a1,a2,a3 = cr['macro avg']['f1-score'] ,cr['macro avg']['precision'],cr['macro avg']['recall'] 
   topover = (a1+a2+a3)/3 
@@ -279,7 +282,18 @@ def infer(valid_queue, model, criterion):
   from sklearn.metrics import balanced_accuracy_score
   from sklearn.metrics import accuracy_score
   print(balanced_accuracy_score(targets, preds))
-  print(accuracy_score(targets, preds))
+  acc = accuracy_score(targets, preds)
+
+  log_score = open("log_score.txt","a")
+  log_score.write('logits: '+str(logits_pred) + "\n")
+  log_score.write('names: '+str(names) + "\n")
+  log_score.write('accuracy:'+str(acc)+'\n')
+  log_score.write('report: '+str(cr)+'\n')
+  log_score.close()
+  print("SAVED!!")
+
+    
+    
   from sklearn.metrics import confusion_matrix
   matrix = confusion_matrix(targets, preds)
   print(matrix.diagonal()/matrix.sum(axis=1))
