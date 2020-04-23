@@ -23,7 +23,7 @@ parser.add_argument('--data', type=str, default='../data', help='location of the
 parser.add_argument('--set', type=str, default='cifar10', help='location of the data corpus')
 parser.add_argument('--batch_size', type=int, default=256, help='batch size')
 parser.add_argument('--learning_rate', type=float, default=0.1, help='init learning rate')
-parser.add_argument('--learning_rate_min', type=float, default=0.0, help='min learning rate')
+parser.add_argument('--learning_rate_min', type=float, default=0.001, help='min learning rate')
 parser.add_argument('--momentum', type=float, default=0.9, help='momentum')
 parser.add_argument('--weight_decay', type=float, default=3e-4, help='weight decay')
 parser.add_argument('--report_freq', type=float, default=50, help='report frequency')
@@ -117,9 +117,10 @@ def main():
     genotype = model.genotype()
     logging.info('genotype = %s', genotype)
 
-    #print(F.softmax(model.alphas_normal, dim=-1))
-    #print(F.softmax(model.alphas_reduce, dim=-1))
-
+    print(F.softmax(model.alphas_normal, dim=-1))
+    print(F.softmax(model.alphas_reduce, dim=-1))
+    print(F.softmax(model.betas_normal[2:5], dim=-1))
+    #model.drop_path_prob = args.drop_path_prob * epoch / args.epochs
     # training
     train_acc, train_obj = train(train_queue, valid_queue, model, architect, criterion, optimizer, lr,epoch)
     logging.info('train_acc %f', train_acc)
@@ -140,18 +141,18 @@ def train(train_queue, valid_queue, model, architect, criterion, optimizer, lr,e
   for step, (input, target) in enumerate(train_queue):
     model.train()
     n = input.size(0)
-    input = Variable(input, requires_grad=False).cuda()
-    target = Variable(target, requires_grad=False).cuda(async=True)
+    input = input.cuda()
+    target = target.cuda(non_blocking=True)
 
     # get a random minibatch from the search queue with replacement
-    input_search, target_search = next(iter(valid_queue))
-    #try:
-    #  input_search, target_search = next(valid_queue_iter)
-    #except:
-    #  valid_queue_iter = iter(valid_queue)
-    #  input_search, target_search = next(valid_queue_iter)
-    input_search = Variable(input_search, requires_grad=False).cuda()
-    target_search = Variable(target_search, requires_grad=False).cuda(async=True)
+    #input_search, target_search = next(iter(valid_queue))
+    try:
+      input_search, target_search = next(valid_queue_iter)
+    except:
+      valid_queue_iter = iter(valid_queue)
+      input_search, target_search = next(valid_queue_iter)
+    input_search = input_search.cuda()
+    target_search = target_search.cuda(non_blocking=True)
 
     if epoch>=15:
       architect.step(input, target, input_search, target_search, lr, optimizer, unrolled=args.unrolled)
@@ -165,9 +166,9 @@ def train(train_queue, valid_queue, model, architect, criterion, optimizer, lr,e
     optimizer.step()
 
     prec1, prec5 = utils.accuracy(logits, target, topk=(1, 5))
-    objs.update(loss.data[0], n)
-    top1.update(prec1.data[0], n)
-    top5.update(prec5.data[0], n)
+    objs.update(loss.data.item(), n)
+    top1.update(prec1.data.item(), n)
+    top5.update(prec5.data.item(), n)
 
     if step % args.report_freq == 0:
       logging.info('train %03d %e %f %f', step, objs.avg, top1.avg, top5.avg)
@@ -181,22 +182,21 @@ def infer(valid_queue, model, criterion):
   top5 = utils.AvgrageMeter()
   model.eval()
 
-  for step, (input, target) in enumerate(valid_queue):
-    #input = input.cuda()
-    #target = target.cuda(non_blocking=True)
-    input = Variable(input, volatile=True).cuda()
-    target = Variable(target, volatile=True).cuda(async=True)
-    logits = model(input)
-    loss = criterion(logits, target)
+  with torch.no_grad():    
+    for step, (input, target) in enumerate(valid_queue):
+      input = input.cuda()
+      target = target.cuda(non_blocking=True)
+      logits = model(input)
+      loss = criterion(logits, target)
 
-    prec1, prec5 = utils.accuracy(logits, target, topk=(1, 5))
-    n = input.size(0)
-    objs.update(loss.data[0], n)
-    top1.update(prec1.data[0], n)
-    top5.update(prec5.data[0], n)
+      prec1, prec5 = utils.accuracy(logits, target, topk=(1, 5))
+      n = input.size(0)
+      objs.update(loss.data.item(), n)
+      top1.update(prec1.data.item(), n)
+      top5.update(prec5.data.item(), n)
 
-    if step % args.report_freq == 0:
-      logging.info('valid %03d %e %f %f', step, objs.avg, top1.avg, top5.avg)
+      if step % args.report_freq == 0:
+        logging.info('valid %03d %e %f %f', step, objs.avg, top1.avg, top5.avg)
 
   return top1.avg, objs.avg
 
